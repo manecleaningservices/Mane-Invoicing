@@ -942,9 +942,9 @@ function renderCustomAddonList() {
     const div = document.createElement("div");
     div.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 13px;border:1.5px solid var(--green-mid);border-radius:10px;background:#eef5f1;margin-top:6px;";
     div.innerHTML = `
-      <div style="flex:1;font-size:13px;font-weight:600;color:var(--text);">\${item.name}</div>
-      <div style="font-size:13px;font-weight:700;color:var(--green);">$\${item.price.toFixed(2)}</div>
-      <button onclick="removeCustomAddon('\${item.id}')" style="background:none;border:none;color:#cc4444;font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
+      <div style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${item.name}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--green);">$${item.price.toFixed(2)}</div>
+      <button onclick="removeCustomAddon('${item.id}')" style="background:none;border:none;color:#cc4444;font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
     `;
     container.appendChild(div);
   });
