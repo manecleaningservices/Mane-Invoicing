@@ -983,41 +983,118 @@ function clearToken() {
 
 let driveAccessToken = null;
 
+const CLIENT_ID = "506030696606-gftuvvferfanbjdndon3rmg4s7i1cid9.apps.googleusercontent.com";
+const REDIRECT_URI = "https://manecleaningservices.github.io/Mane-Invoicing/index.html";
+const SCOPE = "https://www.googleapis.com/auth/drive.file";
+
+function getAuthUrl() {
+  return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(SCOPE)}`;
+}
+
+function isMobileDevice() {
+  return /iPhone|iPad|Android/i.test(navigator.userAgent);
+}
+
 async function getGoogleToken() {
   // Return saved token if still valid
   const saved = loadToken();
   if (saved) return saved;
 
-  // Use Google OAuth2 implicit flow
-  return new Promise((resolve, reject) => {
-    const clientId = "506030696606-gftuvvferfanbjdndon3rmg4s7i1cid9.apps.googleusercontent.com";
-    const scope = "https://www.googleapis.com/auth/drive.file";
-    // Hardcoded to match Google Cloud authorized redirect URI exactly
-    const redirectUri = "https://manecleaningservices.github.io/Mane-Invoicing/index.html";
+  if (isMobileDevice()) {
+    // Mobile: save current invoice state then redirect to Google login
+    saveInvoiceState();
+    window.location.href = getAuthUrl();
+    return null; // page will redirect
+  } else {
+    // Desktop: use popup
+    return new Promise((resolve, reject) => {
+      const popup = window.open(getAuthUrl(), "google_auth", "width=500,height=600");
+      const interval = setInterval(() => {
+        try {
+          if (popup.closed) {
+            clearInterval(interval);
+            reject(new Error("Auth window closed"));
+            return;
+          }
+          const hash = popup.location.hash;
+          if (hash && hash.includes("access_token")) {
+            clearInterval(interval);
+            popup.close();
+            const params = new URLSearchParams(hash.slice(1));
+            const token = params.get("access_token");
+            saveToken(token);
+            resolve(token);
+          }
+        } catch(e) { /* cross-origin, keep waiting */ }
+      }, 500);
+    });
+  }
+}
 
-    // Open OAuth popup
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}`;
-    const popup = window.open(authUrl, "google_auth", "width=500,height=600");
+function saveInvoiceState() {
+  // Save form state so we can restore after redirect
+  const state = {
+    bizName: document.getElementById("bizName").value,
+    bizPhone: document.getElementById("bizPhone").value,
+    bizEmail: document.getElementById("bizEmail").value,
+    custFirst: document.getElementById("custFirst").value,
+    custLast: document.getElementById("custLast").value,
+    custAddr: document.getElementById("custAddr").value,
+    custPhone: document.getElementById("custPhone").value,
+    custEmail: document.getElementById("custEmail").value,
+    svcDate: document.getElementById("svcDate").value,
+    invNum: document.getElementById("invNumField").value,
+    notes: document.getElementById("invNotes").value,
+    discRate: document.getElementById("discRate").value,
+    discFlat: document.getElementById("discFlat").value,
+    discNote: document.getElementById("discNote").value,
+    taxRate: document.getElementById("taxRate").value,
+    recurring: document.getElementById("recurringClient").checked,
+    pendingDriveUpload: true
+  };
+  localStorage.setItem("mane_invoice_state", JSON.stringify(state));
+}
 
-    const interval = setInterval(() => {
-      try {
-        if (popup.closed) {
-          clearInterval(interval);
-          reject(new Error("Auth window closed"));
-          return;
-        }
-        const hash = popup.location.hash;
-        if (hash && hash.includes("access_token")) {
-          clearInterval(interval);
-          popup.close();
-          const params = new URLSearchParams(hash.slice(1));
-          const token = params.get("access_token");
-          saveToken(token);
-          resolve(token);
-        }
-      } catch(e) { /* cross-origin, keep waiting */ }
+function restoreInvoiceState() {
+  try {
+    const raw = localStorage.getItem("mane_invoice_state");
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (!state.pendingDriveUpload) return;
+    localStorage.removeItem("mane_invoice_state");
+
+    // Restore fields
+    const fields = ["bizName","bizPhone","bizEmail","custFirst","custLast","custAddr","custPhone","custEmail","svcDate","invNum","notes","discRate","discFlat","discNote","taxRate"];
+    const ids =    ["bizName","bizPhone","bizEmail","custFirst","custLast","custAddr","custPhone","custEmail","svcDate","invNumField","invNotes","discRate","discFlat","discNote","taxRate"];
+    fields.forEach((f, i) => {
+      const el = document.getElementById(ids[i]);
+      if (el && state[f] !== undefined) el.value = state[f];
+    });
+    if (document.getElementById("recurringClient")) document.getElementById("recurringClient").checked = state.recurring || false;
+    updateTotals();
+
+    // Now trigger upload
+    setTimeout(() => {
+      showInvoice();
+      setTimeout(() => saveAndUploadDrive(), 800);
     }, 500);
-  });
+  } catch(e) { console.error("State restore error:", e); }
+}
+
+// Check if we just returned from Google OAuth redirect (mobile flow)
+function checkOAuthRedirect() {
+  const hash = window.location.hash;
+  if (hash && hash.includes("access_token")) {
+    const params = new URLSearchParams(hash.slice(1));
+    const token = params.get("access_token");
+    if (token) {
+      saveToken(token);
+      // Clean up URL
+      history.replaceState(null, "", window.location.pathname);
+      // Restore state and trigger upload
+      restoreInvoiceState();
+    }
+  }
 }
 
 async function getOrCreateFolder(token) {
@@ -1133,6 +1210,7 @@ async function saveAndUploadDrive() {
 
 // Init
 buildServices();
+checkOAuthRedirect();
 initInvNum();
 document.getElementById("svcDate").valueAsDate = new Date();
 updateTotals();
