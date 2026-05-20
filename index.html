@@ -964,9 +964,30 @@ const _origFindMain = id => MAIN_SVCS.find(s => s.id === id) || customMainItems.
 
 // ── Google Drive Upload ──
 const DRIVE_FOLDER_NAME = "Mane Cleaning Invoices";
+// ── Google Token Persistence ──
+function saveToken(token) {
+  const expiry = Date.now() + 55 * 60 * 1000; // 55 min (tokens last 1hr)
+  localStorage.setItem("mane_drive_token", token);
+  localStorage.setItem("mane_drive_token_expiry", String(expiry));
+}
+function loadToken() {
+  const token = localStorage.getItem("mane_drive_token");
+  const expiry = parseInt(localStorage.getItem("mane_drive_token_expiry") || "0");
+  if (token && Date.now() < expiry) return token;
+  return null;
+}
+function clearToken() {
+  localStorage.removeItem("mane_drive_token");
+  localStorage.removeItem("mane_drive_token_expiry");
+}
+
 let driveAccessToken = null;
 
 async function getGoogleToken() {
+  // Return saved token if still valid
+  const saved = loadToken();
+  if (saved) return saved;
+
   // Use Google OAuth2 implicit flow
   return new Promise((resolve, reject) => {
     const clientId = "506030696606-gftuvvferfanbjdndon3rmg4s7i1cid9.apps.googleusercontent.com";
@@ -990,7 +1011,9 @@ async function getGoogleToken() {
           clearInterval(interval);
           popup.close();
           const params = new URLSearchParams(hash.slice(1));
-          resolve(params.get("access_token"));
+          const token = params.get("access_token");
+          saveToken(token);
+          resolve(token);
         }
       } catch(e) { /* cross-origin, keep waiting */ }
     }, 500);
@@ -1089,6 +1112,7 @@ async function saveAndUploadDrive() {
     if (!uploadRes.ok) {
       // Token might be expired
       driveAccessToken = null;
+      clearToken();
       throw new Error("Upload failed — please try again");
     }
 
