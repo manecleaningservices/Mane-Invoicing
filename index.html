@@ -1127,14 +1127,30 @@ async function saveAndUploadDrive() {
     statusEl.textContent = "⏳ Generating PDF...";
     btn.disabled = true;
 
-    // Generate PDF — page 1: invoice (without terms), page 2: terms
+    // Generate PDF — force desktop width so mobile matches desktop output
     const sheet = document.getElementById("inv-sheet");
     const termsEl = sheet.querySelector(".inv-terms");
 
+    // Force desktop width for consistent rendering across all devices
+    const originalWidth = sheet.style.width;
+    const originalMaxWidth = sheet.style.maxWidth;
+    sheet.style.width = "900px";
+    sheet.style.maxWidth = "900px";
+
     // Temporarily hide terms for page 1
     if (termsEl) termsEl.style.display = "none";
-    const canvas1 = await html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+    const canvas1 = await html2canvas(sheet, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      windowWidth: 1200,
+      width: 900
+    });
     if (termsEl) termsEl.style.display = "";
+
+    // Restore original styles
+    sheet.style.width = originalWidth;
+    sheet.style.maxWidth = originalMaxWidth;
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -1149,11 +1165,19 @@ async function saveAndUploadDrive() {
     // Page 2 — terms only
     if (termsEl) {
       pdf.addPage();
-      const canvas2 = await html2canvas(termsEl, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      // Also force terms width
+      termsEl.style.width = "900px";
+      const canvas2 = await html2canvas(termsEl, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        windowWidth: 1200,
+        width: 900
+      });
+      termsEl.style.width = "";
       const img2 = canvas2.toDataURL("image/jpeg", 0.95);
       const img2H = (canvas2.height * pdfW) / canvas2.width;
-      // Add with padding
-      pdf.addImage(img2, "JPEG", 10, 10, pdfW - 20, Math.min(img2H * ((pdfW - 20) / pdfW), pdfH - 20));
+      pdf.addImage(img2, "JPEG", 10, 10, pdfW - 20, Math.min(img2H * ((pdfW-20)/pdfW), pdfH - 20));
     }
 
     const pdfBlob = pdf.output("blob");
