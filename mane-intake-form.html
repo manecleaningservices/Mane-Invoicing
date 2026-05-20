@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mane Cleaning Services — Client Intake</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:#FAF7F2;--warm-white:#FFFEF9;--gold:#C9A84C;--gold-light:#E8C97A;
+    --gold-pale:#F5EDD4;--charcoal:#2A2A2A;--mid:#5A5A5A;--light:#9A9A9A;
+    --border:#E5DDD0;--shadow:rgba(42,42,42,0.08);--danger:#C0392B;--success:#2E7D52;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--charcoal);min-height:100vh;padding-bottom:60px;}
+
+  .header{background:var(--charcoal);padding:18px 24px 14px;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,0.25);}
+  .header-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--gold-light);letter-spacing:0.04em;}
+  .header-sub{font-size:0.62rem;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:var(--light);margin-top:2px;}
+  .sync-status{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--light);flex-shrink:0;transition:background 0.3s;}
+  .sync-dot.ok{background:#48BB78;} .sync-dot.syncing{background:var(--gold);animation:pulse 1s infinite;} .sync-dot.error{background:var(--danger);}
+  .sync-label{color:var(--light);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+  .setup-banner{background:#FFF8E7;border-bottom:2px solid var(--gold-pale);padding:14px 20px;display:flex;align-items:flex-start;gap:12px;}
+  .setup-banner.hidden{display:none;}
+  .setup-icon{font-size:1.3rem;flex-shrink:0;margin-top:1px;}
+  .setup-text{font-size:0.82rem;color:var(--charcoal);line-height:1.5;}
+  .setup-text strong{color:var(--gold);}
+  .setup-input-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .setup-input{flex:1;min-width:200px;padding:10px 13px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.82rem;background:#fff;}
+  .setup-input:focus{outline:none;border-color:var(--gold);}
+  .setup-save-btn{padding:10px 18px;background:var(--gold);color:#fff;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .setup-save-btn:hover{background:#b8943e;}
+
+  .nav-tabs{display:flex;background:#fff;border-bottom:2px solid var(--border);}
+  .nav-tab{flex:1;padding:13px 10px;font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--light);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
+  .nav-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+  .panel{display:none;} .panel.active{display:block;}
+
+  .form-wrap{max-width:680px;margin:0 auto;padding:28px 20px 0;}
+  .form-section-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--charcoal);margin-bottom:18px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .badge{background:var(--gold);color:#fff;font-family:'DM Sans',sans-serif;font-size:0.65rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;}
+  .field-group{margin-bottom:20px;}
+  label{display:block;font-size:0.78rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--mid);margin-bottom:7px;}
+  label .req{color:var(--gold);margin-left:2px;}
+  .field-hint{font-size:0.72rem;color:var(--light);margin-top:5px;font-style:italic;}
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="time"],
+  textarea {
+    width:100%;padding:13px 15px;border:1.5px solid var(--border);border-radius:8px;
+    font-family:'DM Sans',sans-serif;font-size:0.92rem;color:var(--charcoal);
+    background:var(--warm-white);transition:border-color 0.2s,box-shadow 0.2s;
+  }
+  input:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.15);}
+  textarea{resize:vertical;min-height:80px;}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:480px){.grid-2{grid-template-columns:1fr;}}
+  .section-gap{margin-top:32px;}
+
+  .btn-row{display:flex;gap:12px;margin-top:28px;padding-bottom:8px;flex-wrap:wrap;}
+  .btn{padding:14px 28px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.2s;flex:1;min-width:120px;}
+  .btn-primary{background:var(--gold);color:#fff;box-shadow:0 3px 12px rgba(201,168,76,0.35);}
+  .btn-primary:hover{background:#b8943e;} .btn-primary:disabled{background:var(--light);box-shadow:none;cursor:not-allowed;}
+  .btn-secondary{background:transparent;color:var(--mid);border:1.5px solid var(--border);}
+  .btn-secondary:hover{border-color:var(--gold);color:var(--gold);}
+  .btn-danger{background:transparent;color:var(--danger);border:1.5px solid #e8c0bc;flex:none;min-width:auto;padding:14px 20px;}
+  .btn-danger:hover{background:#fdf0ef;}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--charcoal);color:#fff;padding:12px 22px;border-radius:8px;font-size:0.85rem;font-weight:500;z-index:999;transition:transform 0.3s ease;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+  .toast.show{transform:translateX(-50%) translateY(0);} .toast.success{background:var(--success);} .toast.error{background:var(--danger);}
+
+  .records-wrap{max-width:680px;margin:0 auto;padding:24px 20px;}
+  .records-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+  .records-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;}
+  .records-count{font-size:0.75rem;font-weight:600;color:var(--light);letter-spacing:0.05em;text-transform:uppercase;background:var(--border);padding:4px 10px;border-radius:20px;}
+  .search-bar{margin-bottom:16px;position:relative;}
+  .search-bar input{padding-left:38px;}
+  .search-bar::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:0.85rem;pointer-events:none;}
+  .empty-state{text-align:center;padding:50px 20px;color:var(--light);}
+  .empty-state .icon{font-size:2.5rem;margin-bottom:12px;}
+  .loading-state{text-align:center;padding:40px 20px;color:var(--light);}
+  .spinner{display:inline-block;width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .record-card{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:all 0.18s;}
+  .record-card:hover{border-color:var(--gold);box-shadow:0 3px 14px var(--shadow);}
+  .record-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+  .record-name{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;}
+  .record-date-badge{font-size:0.68rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--light);background:var(--cream);padding:3px 9px;border-radius:20px;white-space:nowrap;}
+  .record-meta{font-size:0.78rem;color:var(--light);margin-bottom:6px;}
+  .record-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .chip{font-size:0.72rem;font-weight:500;padding:3px 10px;border-radius:20px;background:var(--gold-pale);color:var(--charcoal);}
+  .chip.green{background:#EBF5EE;color:#2E7D52;}
+  .record-card-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+  .act-btn{padding:7px 14px;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;border-radius:6px;border:1.5px solid var(--border);background:transparent;cursor:pointer;transition:all 0.15s;color:var(--mid);}
+  .act-btn:hover{border-color:var(--gold);color:var(--gold);} .act-btn.del:hover{border-color:var(--danger);color:var(--danger);}
+  .refresh-btn{background:transparent;border:1.5px solid var(--border);color:var(--mid);padding:6px 14px;border-radius:7px;font-size:0.75rem;font-weight:600;cursor:pointer;transition:all 0.15s;}
+  .refresh-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+  .detail-overlay{display:none;position:fixed;inset:0;background:rgba(42,42,42,0.55);z-index:200;overflow-y:auto;padding:24px 16px;}
+  .detail-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
+  .detail-box{background:var(--warm-white);border-radius:14px;width:100%;max-width:620px;overflow:hidden;box-shadow:0 10px 50px rgba(0,0,0,0.25);animation:slideUp 0.25s ease;}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+  .detail-header{background:var(--charcoal);padding:20px 24px;display:flex;justify-content:space-between;align-items:center;}
+  .detail-header-name{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--gold-light);}
+  .detail-header-sub{font-size:0.72rem;color:var(--light);margin-top:2px;}
+  .close-btn{background:transparent;border:1.5px solid rgba(255,255,255,0.2);color:#fff;width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .detail-body{padding:22px 24px;}
+  .detail-section{margin-bottom:20px;}
+  .detail-section-title{font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--gold-pale);}
+  .detail-row{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;margin-bottom:8px;font-size:0.87rem;}
+  .detail-label{font-weight:600;color:var(--mid);}
+  .detail-actions{padding:16px 24px 22px;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border);}
+  @media(max-width:520px){.detail-row{grid-template-columns:1fr;gap:1px;margin-bottom:10px;}.detail-label{color:var(--gold);font-size:0.72rem;}}
+  @media print{.header,.nav-tabs,.btn-row,.record-card-actions,.detail-actions,.toast,.setup-banner{display:none!important;}.detail-overlay{position:static!important;padding:0!important;background:none!important;}.detail-box{box-shadow:none!important;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">✦ Mane Cleaning Services</div>
+  <div class="header-sub">Client Intake Questionnaire</div>
+  <div class="sync-status">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span class="sync-label" id="sync-label">Not connected</span>
+  </div>
+</div>
+
+<div class="setup-banner" id="setup-banner">
+  <div class="setup-icon">🔗</div>
+  <div class="setup-text">
+    <strong>Connect to Google Sheets</strong> — paste your Web App URL below to sync records across all your devices.
+    <div class="setup-input-row">
+      <input class="setup-input" id="script-url-input" type="url" placeholder="https://script.google.com/macros/s/YOUR_ID/exec">
+      <button class="setup-save-btn" onclick="saveScriptUrl()">Connect</button>
+    </div>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('form',this)">New Intake</button>
+  <button class="nav-tab" onclick="switchTab('records',this)">Saved Records</button>
+</div>
+
+<!-- FORM PANEL -->
+<div id="panel-form" class="panel active">
+<div class="form-wrap">
+
+  <div class="form-section-title">Client Information <span class="badge">Step 1</span></div>
+
+  <div class="grid-2">
+    <div class="field-group">
+      <label>First Name <span class="req">*</span></label>
+      <input type="text" id="f-firstname" placeholder="Jane">
+    </div>
+    <div class="field-group">
+      <label>Last Name <span class="req">*</span></label>
+      <input type="text" id="f-lastname" placeholder="Smith">
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="field-group">
+      <label>Phone Number</label>
+      <input type="tel" id="f-phone" placeholder="(705) 555-0100">
+    </div>
+    <div class="field-group">
+      <label>Email Address</label>
+      <input type="email" id="f-email" placeholder="jane@email.com">
+    </div>
+  </div>
+
+  <div class="section-gap">
+    <div class="form-section-title">Property Details <span class="badge">Questions 1–3</span></div>
+  </div>
+
+  <div class="field-group">
+    <label>Q1 · Location / Address <span class="req">*</span></label>
+    <input type="text" id="f-address" placeholder="123 Main St, Uxbridge, ON">
+  </div>
+  <div class="field-group">
+    <label>Q1 · Residential or Commercial?</label>
+    <input type="text" id="f-proptype" placeholder="e.g. Residential">
+  </div>
+  <div class="grid-2">
+    <div class="field-group">
+      <label>Q2 · Bedrooms</label>
+      <input type="text" id="f-beds" placeholder="e.g. 3">
+    </div>
+    <div class="field-group">
+      <label>Q2 · Bathrooms</label>
+      <input type="text" id="f-baths" placeholder="e.g. 2">
+    </div>
+  </div>
+  <div class="field-group">
+    <label>Q2 · Approximate Square Footage</label>
+    <input type="text" id="f-sqft" placeholder="e.g. 1,800 sq ft">
+    <div class="field-hint">If they don't know, use rooms as a proxy.</div>
+  </div>
+  <div class="field-group">
+    <label>Q3 · Type of Clean</label>
+    <input type="text" id="f-cleantype" placeholder="e.g. Deep clean, Standard maintenance, Move-in/out">
+  </div>
+
+  <div class="section-gap">
+    <div class="form-section-title">Service & Scheduling <span class="badge">Questions 4 & 8</span></div>
+  </div>
+
+  <div class="field-group">
+    <label>Q4 · One-Time or Recurring?</label>
+    <input type="text" id="f-frequency" placeholder="e.g. Bi-weekly, Monthly, One-time">
+  </div>
+  <div class="grid-2">
+    <div class="field-group">
+      <label>Q8 · Preferred Start Date</label>
+      <input type="text" id="f-date" placeholder="e.g. June 5, Monday mornings">
+    </div>
+    <div class="field-group">
+      <label>Q8 · Preferred Time</label>
+      <input type="text" id="f-time" placeholder="e.g. 9am, after 2pm">
+    </div>
+  </div>
+
+  <div class="section-gap">
+    <div class="form-section-title">Home Details <span class="badge">Questions 5 & 6</span></div>
+  </div>
+
+  <div class="field-group">
+    <label>Q5 · Pets in the Home?</label>
+    <input type="text" id="f-pets" placeholder="e.g. No, 1 dog, 2 cats">
+  </div>
+  <div class="field-group">
+    <label>Q6 · Areas or Tasks to Focus On</label>
+    <textarea id="f-focus" placeholder="e.g. Inside fridge, oven, windows, laundry…" rows="2"></textarea>
+  </div>
+  <div class="field-group">
+    <label>Q6 · Areas or Tasks to Skip</label>
+    <textarea id="f-skip" placeholder="e.g. Skip the basement storage room…" rows="2"></textarea>
+  </div>
+
+  <div class="section-gap">
+    <div class="form-section-title">Previous Service & Notes <span class="badge">Questions 7 & Notes</span></div>
+  </div>
+
+  <div class="field-group">
+    <label>Q7 · Had a Professional Cleaner Before?</label>
+    <input type="text" id="f-hadprev" placeholder="e.g. Yes / No — first time">
+  </div>
+  <div class="field-group">
+    <label>Q7 · What Were They Unhappy With?</label>
+    <textarea id="f-previssues" placeholder="e.g. Always missed behind the toilet, never got into corners…" rows="2"></textarea>
+  </div>
+  <div class="field-group">
+    <label>Additional Notes / Special Instructions</label>
+    <textarea id="f-notes" placeholder="Access code, parking details, product allergies, etc." rows="3"></textarea>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="clearForm()">Clear Form</button>
+    <button class="btn btn-primary" id="save-btn" onclick="saveRecord()">💾 Save Record</button>
+  </div>
+
+</div>
+</div>
+
+<!-- RECORDS PANEL -->
+<div id="panel-records" class="panel">
+<div class="records-wrap">
+  <div class="records-header">
+    <div class="records-title">Saved Intakes</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="refresh-btn" onclick="loadRecords(true)">↻ Refresh</button>
+      <div class="records-count" id="rec-count">—</div>
+    </div>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search by name, address, service…" oninput="renderRecords()">
+  </div>
+  <div id="records-list"></div>
+</div>
+</div>
+
+<!-- DETAIL OVERLAY -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetailIfOutside(event)">
+  <div class="detail-box">
+    <div class="detail-header">
+      <div>
+        <div class="detail-header-name" id="d-name">—</div>
+        <div class="detail-header-sub" id="d-saved"></div>
+      </div>
+      <button class="close-btn" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-body" id="d-body"></div>
+    <div class="detail-actions">
+      <button class="btn btn-primary" style="flex:1;" onclick="editCurrentRecord()">✏️ Edit</button>
+      <button class="btn btn-secondary" style="flex:1;" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-danger" onclick="deleteCurrentRecord()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const URL_KEY = 'mane_script_url';
+let SCRIPT_URL = localStorage.getItem(URL_KEY) || '';
+let records = [];
+let currentIdx = null;
+let isSaving = false;
+
+(function init() {
+  updateSetupBanner();
+  updateSyncStatus('idle');
+  if (SCRIPT_URL) document.getElementById('script-url-input').value = SCRIPT_URL;
+})();
+
+function updateSetupBanner() {
+  document.getElementById('setup-banner').classList.toggle('hidden', !!SCRIPT_URL);
+}
+
+function saveScriptUrl() {
+  const val = document.getElementById('script-url-input').value.trim();
+  if (!val.startsWith('https://script.google.com')) {
+    showToast('Please paste a valid Google Apps Script URL.', 'error'); return;
+  }
+  SCRIPT_URL = val;
+  localStorage.setItem(URL_KEY, SCRIPT_URL);
+  updateSetupBanner();
+  showToast('Connected! Loading records…', 'success');
+  loadRecords(true);
+}
+
+function updateSyncStatus(state, msg) {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  dot.className = 'sync-dot';
+  if (state==='ok')         { dot.classList.add('ok');      label.textContent = msg||'Synced'; }
+  else if (state==='syncing') { dot.classList.add('syncing'); label.textContent = msg||'Syncing…'; }
+  else if (state==='error')   { dot.classList.add('error');   label.textContent = msg||'Sync error'; }
+  else { label.textContent = SCRIPT_URL ? 'Ready' : 'Not connected'; }
+}
+
+async function api(action, data) {
+  if (!SCRIPT_URL) throw new Error('No script URL configured.');
+  updateSyncStatus('syncing');
+  const url = SCRIPT_URL + '?action=' + action + (data ? '&data=' + encodeURIComponent(JSON.stringify(data)) : '');
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  updateSyncStatus('ok');
+  return json;
+}
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  el.classList.add('active');
+  if (tab === 'records') loadRecords();
+}
+function switchTabDirect(tab) {
+  const tabs = ['form','records'];
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  document.querySelectorAll('.nav-tab')[tabs.indexOf(tab)].classList.add('active');
+}
+
+function v(id) { return document.getElementById(id).value.trim(); }
+
+function collectForm() {
+  return {
+    id:           currentIdx !== null ? records[currentIdx].id : null,
+    savedAt:      currentIdx !== null ? records[currentIdx].savedAt : null,
+    firstName:    v('f-firstname'),
+    lastName:     v('f-lastname'),
+    phone:        v('f-phone'),
+    email:        v('f-email'),
+    address:      v('f-address'),
+    propertyType: v('f-proptype'),
+    bedrooms:     v('f-beds'),
+    bathrooms:    v('f-baths'),
+    sqft:         v('f-sqft'),
+    cleanType:    v('f-cleantype'),
+    frequency:    v('f-frequency'),
+    preferredDate: document.getElementById('f-date').value,
+    preferredTime: document.getElementById('f-time').value,
+    pets:         v('f-pets'),
+    focusNotes:   v('f-focus'),
+    skipNotes:    v('f-skip'),
+    hadPrevious:  v('f-hadprev'),
+    prevIssues:   v('f-previssues'),
+    notes:        v('f-notes'),
+  };
+}
+
+async function saveRecord() {
+  if (isSaving) return;
+  const d = collectForm();
+  if (!d.firstName || !d.lastName) { showToast('Please enter a first and last name.','error'); return; }
+  if (!d.address) { showToast('Please enter an address.','error'); return; }
+  if (!SCRIPT_URL) { showToast('Connect to Google Sheets first — see the banner above.','error'); return; }
+  isSaving = true;
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res = await api('save', d);
+    showToast(res.action==='updated' ? 'Record updated ✓' : 'Record saved ✓', 'success');
+    clearForm();
+    await loadRecords(true);
+  } catch(e) {
+    showToast('Save failed: ' + e.message, 'error');
+    updateSyncStatus('error','Save failed');
+  } finally {
+    isSaving = false; btn.disabled = false; btn.textContent = '💾 Save Record';
+  }
+}
+
+async function loadRecords(force) {
+  if (!SCRIPT_URL) {
+    document.getElementById('records-list').innerHTML = '<div class="empty-state"><div class="icon">🔗</div><p>Paste your Google Apps Script URL in the banner above to connect.</p></div>';
+    document.getElementById('rec-count').textContent = '—'; return;
+  }
+  if (!force && records.length > 0) { renderRecords(); return; }
+  document.getElementById('records-list').innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading records…</p></div>';
+  try {
+    const res = await api('getAll');
+    records = res.records || [];
+    renderRecords();
+  } catch(e) {
+    updateSyncStatus('error','Load failed');
+    document.getElementById('records-list').innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Could not load records.<br><small>' + e.message + '</small></p></div>';
+  }
+}
+
+function renderRecords() {
+  const q = (document.getElementById('search-input').value||'').toLowerCase();
+  const filtered = records.filter(r =>
+    !q || [r.firstName,r.lastName,r.address,r.cleanType,r.frequency,r.propertyType].join(' ').toLowerCase().includes(q)
+  );
+  document.getElementById('rec-count').textContent = records.length + ' record' + (records.length!==1?'s':'');
+  const list = document.getElementById('records-list');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>' + (q?'No matches found.':'No records yet.') + '</p></div>'; return;
+  }
+  list.innerHTML = filtered.map(r => {
+    const idx = records.indexOf(r);
+    const date = r.savedAt ? new Date(r.savedAt).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    const chips = [r.cleanType, r.frequency, r.propertyType].filter(Boolean);
+    const prefDate = r.preferredDate ? '<span class="chip green">📅 ' + r.preferredDate + '</span>' : '';
+    return '<div class="record-card" onclick="openDetail('+idx+')">'
+      + '<div class="record-card-header"><div class="record-name">'+r.firstName+' '+r.lastName+'</div><div class="record-date-badge">'+date+'</div></div>'
+      + '<div class="record-meta">'+(r.address||'—')+'</div>'
+      + '<div class="record-chips">'+chips.map(c=>'<span class="chip">'+c+'</span>').join('')+prefDate+'</div>'
+      + '<div class="record-card-actions" onclick="event.stopPropagation()">'
+      + '<button class="act-btn" onclick="openDetail('+idx+')">View</button>'
+      + '<button class="act-btn" onclick="editRecord('+idx+')">Edit</button>'
+      + '<button class="act-btn del" onclick="confirmDelete('+idx+')">Delete</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+function row(label, val) {
+  return '<div class="detail-row"><span class="detail-label">'+label+'</span><span>'+(val||'—')+'</span></div>';
+}
+
+function openDetail(idx) {
+  currentIdx = idx;
+  const r = records[idx];
+  document.getElementById('d-name').textContent = r.firstName + ' ' + r.lastName;
+  const saved = r.savedAt ? new Date(r.savedAt).toLocaleString('en-CA',{dateStyle:'medium',timeStyle:'short'}) : '—';
+  document.getElementById('d-saved').textContent = 'Saved ' + saved;
+  const pref = [r.preferredDate, r.preferredTime].filter(Boolean).join(' at ') || '—';
+  document.getElementById('d-body').innerHTML =
+    '<div class="detail-section"><div class="detail-section-title">Contact</div>'
+    + row('Name', r.firstName+' '+r.lastName)
+    + row('Phone', r.phone) + row('Email', r.email) + row('Address', r.address) + '</div>'
+    + '<div class="detail-section"><div class="detail-section-title">Property</div>'
+    + row('Type', r.propertyType) + row('Bedrooms', r.bedrooms) + row('Bathrooms', r.bathrooms) + row('Sq Footage', r.sqft) + '</div>'
+    + '<div class="detail-section"><div class="detail-section-title">Service</div>'
+    + row('Clean Type', r.cleanType) + row('Frequency', r.frequency) + row('Preferred', pref) + row('Pets', r.pets) + '</div>'
+    + '<div class="detail-section"><div class="detail-section-title">Focus & Skip</div>'
+    + row('Focus On', r.focusNotes) + row('Skip', r.skipNotes) + '</div>'
+    + '<div class="detail-section"><div class="detail-section-title">Previous Service</div>'
+    + row('Had Before?', r.hadPrevious) + row('Pain Points', r.prevIssues) + '</div>'
+    + (r.notes ? '<div class="detail-section"><div class="detail-section-title">Notes</div><div style="font-size:0.87rem;">'+r.notes+'</div></div>' : '');
+  document.getElementById('detail-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); document.body.style.overflow=''; }
+function closeDetailIfOutside(e) { if (e.target===document.getElementById('detail-overlay')) closeDetail(); }
+
+function editRecord(idx) { loadIntoForm(idx); closeDetail(); switchTabDirect('form'); window.scrollTo({top:0,behavior:'smooth'}); }
+function editCurrentRecord() { if (currentIdx!==null) editRecord(currentIdx); }
+
+function loadIntoForm(idx) {
+  const r = records[idx]; currentIdx = idx;
+  const set = (id, val) => document.getElementById(id).value = val||'';
+  set('f-firstname', r.firstName); set('f-lastname', r.lastName);
+  set('f-phone', r.phone);         set('f-email', r.email);
+  set('f-address', r.address);     set('f-proptype', r.propertyType);
+  set('f-beds', r.bedrooms);       set('f-baths', r.bathrooms);
+  set('f-sqft', r.sqft);           set('f-cleantype', r.cleanType);
+  set('f-frequency', r.frequency); set('f-date', r.preferredDate);
+  set('f-time', r.preferredTime);  set('f-pets', r.pets);
+  set('f-focus', r.focusNotes);    set('f-skip', r.skipNotes);
+  set('f-hadprev', r.hadPrevious); set('f-previssues', r.prevIssues);
+  set('f-notes', r.notes);
+}
+
+async function confirmDelete(idx) {
+  if (!confirm('Delete this record from Google Sheets?')) return;
+  try {
+    await api('delete', { id: records[idx].id });
+    records.splice(idx, 1); renderRecords();
+    showToast('Record deleted.', '');
+  } catch(e) { showToast('Delete failed: ' + e.message, 'error'); }
+}
+async function deleteCurrentRecord() {
+  if (currentIdx===null) return;
+  closeDetail(); await confirmDelete(currentIdx); currentIdx=null;
+}
+
+function clearForm() {
+  currentIdx = null;
+  ['f-firstname','f-lastname','f-phone','f-email','f-address','f-proptype',
+   'f-beds','f-baths','f-sqft','f-cleantype','f-frequency','f-date','f-time',
+   'f-pets','f-focus','f-skip','f-hadprev','f-previssues','f-notes']
+    .forEach(id => document.getElementById(id).value = '');
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast '+(type||'');
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
