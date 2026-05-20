@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Mane Cleaning Services — Invoice</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
   --green: #1a4a35;
@@ -379,8 +381,15 @@ Remaining amount due on the day of cleaning.</textarea>
 <div id="invoice-view">
   <div class="inv-bar">
     <span>Invoice Preview</span>
-    <button onclick="showForm()">← Edit</button>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button onclick="showForm()">← Edit</button>
+      <button onclick="saveAndUploadDrive()" id="drive-btn" style="background:#4285f4;border:none;color:#fff;border-radius:7px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 87.3 78" fill="white"><path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z"/><path d="M43.65 25L29.9 1.2C28.55 2 27.4 3.1 26.6 4.5L1.2 47.5C.4 48.9 0 50.45 0 52h27.5z"/><path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l5.85 11.8z"/><path d="M43.65 25L57.4 1.2C56.05.45 54.5 0 52.85 0H34.45c-1.65 0-3.2.45-4.55 1.2z"/><path d="M59.8 52H87.3c0-1.55-.4-3.1-1.2-4.5L61.1 4.5c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25z"/><path d="M43.65 25L29.9 48.2 16.15 25H43.65zM27.5 52H59.8L43.65 78z"/></svg>
+        Save to Drive
+      </button>
+    </div>
   </div>
+  <div id="drive-status" style="display:none;margin:8px 14px 0;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;"></div>
   <div class="pdf-tip">
     <strong>💾 Save as PDF:</strong>
     <span id="pdf-tip-text">Use browser Print → Save as PDF (Ctrl+P / Cmd+P)</span>
@@ -952,6 +961,130 @@ function renderCustomAddonList() {
 
 // Patch renderInvoice to use correct name for custom items
 const _origFindMain = id => MAIN_SVCS.find(s => s.id === id) || customMainItems.find(s => s.id === id);
+
+// ── Google Drive Upload ──
+const DRIVE_FOLDER_NAME = "Mane Cleaning Invoices";
+let driveAccessToken = null;
+
+async function getGoogleToken() {
+  // Use Google OAuth2 implicit flow
+  return new Promise((resolve, reject) => {
+    const clientId = "506030696606-gftuvvferfanbjdndon3rmg4s7i1cid9.apps.googleusercontent.com";
+    const scope = "https://www.googleapis.com/auth/drive.file";
+    const redirectUri = window.location.href.split("?")[0];
+
+    // Open OAuth popup
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}`;
+    const popup = window.open(authUrl, "google_auth", "width=500,height=600");
+
+    const interval = setInterval(() => {
+      try {
+        if (popup.closed) {
+          clearInterval(interval);
+          reject(new Error("Auth window closed"));
+          return;
+        }
+        const hash = popup.location.hash;
+        if (hash && hash.includes("access_token")) {
+          clearInterval(interval);
+          popup.close();
+          const params = new URLSearchParams(hash.slice(1));
+          resolve(params.get("access_token"));
+        }
+      } catch(e) { /* cross-origin, keep waiting */ }
+    }, 500);
+  });
+}
+
+async function getOrCreateFolder(token) {
+  // Search for existing folder
+  const searchRes = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FOLDER_NAME}'+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const searchData = await searchRes.json();
+  if (searchData.files && searchData.files.length > 0) return searchData.files[0].id;
+
+  // Create folder if not found
+  const createRes = await fetch("https://www.googleapis.com/drive/v3/files", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: "application/vnd.google-apps.folder" })
+  });
+  const folder = await createRes.json();
+  return folder.id;
+}
+
+async function saveAndUploadDrive() {
+  const statusEl = document.getElementById("drive-status");
+  const btn = document.getElementById("drive-btn");
+
+  try {
+    statusEl.style.display = "block";
+    statusEl.style.background = "#fff7ed";
+    statusEl.style.color = "#7a5020";
+    statusEl.textContent = "⏳ Generating PDF...";
+    btn.disabled = true;
+
+    // Generate PDF from invoice sheet
+    const sheet = document.getElementById("inv-sheet");
+    const canvas = await html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = (canvas.height * pdfW) / canvas.width;
+    pdf.addImage(imgData, "JPEG", 0, 0, pdfW, pdfH);
+    const pdfBlob = pdf.output("blob");
+
+    // Get filename
+    const invNum = document.getElementById("invNumField").value || "INV";
+    const clientFirst = document.getElementById("custFirst").value.trim();
+    const filename = `Mane Cleaning Services - ${clientFirst ? clientFirst + " - " : ""}${invNum}.pdf`;
+
+    statusEl.textContent = "🔐 Connecting to Google Drive...";
+
+    // Get token
+    if (!driveAccessToken) driveAccessToken = await getGoogleToken();
+    const token = driveAccessToken;
+
+    statusEl.textContent = "📁 Finding your folder...";
+    const folderId = await getOrCreateFolder(token);
+
+    statusEl.textContent = "⬆️ Uploading to Drive...";
+
+    // Upload file
+    const metadata = { name: filename, parents: [folderId] };
+    const formData = new FormData();
+    formData.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+    formData.append("file", pdfBlob, filename);
+
+    const uploadRes = await fetch(
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+      { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData }
+    );
+
+    if (!uploadRes.ok) {
+      // Token might be expired
+      driveAccessToken = null;
+      throw new Error("Upload failed — please try again");
+    }
+
+    const file = await uploadRes.json();
+    statusEl.style.background = "#eef5f1";
+    statusEl.style.color = "#1a4a35";
+    statusEl.innerHTML = `✅ Saved to Google Drive: <strong>${filename}</strong> — <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank" style="color:var(--green)">View in Drive</a>`;
+
+  } catch(err) {
+    statusEl.style.background = "#fef2f2";
+    statusEl.style.color = "#cc0000";
+    statusEl.textContent = "❌ " + (err.message || "Something went wrong. Please try again.");
+    driveAccessToken = null;
+  } finally {
+    btn.disabled = false;
+  }
+}
 
 // Init
 buildServices();
