@@ -35,8 +35,40 @@
   .setup-save-btn:hover{background:#b8943e;}
 
   .nav-tabs{display:flex;background:#fff;border-bottom:2px solid var(--border);}
-  .nav-tab{flex:1;padding:13px 10px;font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--light);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
+  .nav-tab{flex:1;padding:13px 6px;font-size:0.65rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--light);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s;white-space:nowrap;}
   .nav-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+  /* PRICING TABLE */
+  .pricing-wrap{max-width:680px;margin:0 auto;padding:28px 20px;}
+  .pricing-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;margin-bottom:6px;}
+  .pricing-note{font-size:0.78rem;color:var(--mid);margin-bottom:20px;line-height:1.5;}
+  .pricing-note span{color:var(--gold);font-weight:600;}
+  .price-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+  .price-table th{background:var(--charcoal);color:var(--gold-light);font-weight:600;padding:11px 10px;text-align:center;font-size:0.7rem;letter-spacing:0.04em;text-transform:uppercase;}
+  .price-table th:first-child{text-align:left;border-radius:0;}
+  .price-table td{padding:11px 10px;border-bottom:1px solid var(--border);text-align:center;background:var(--warm-white);vertical-align:middle;}
+  .price-table td:first-child{text-align:left;font-weight:600;background:#fff;}
+  .price-table tr:nth-child(even) td{background:#F7F4EF;}
+  .price-table tr:nth-child(even) td:first-child{background:#F2EFE9;}
+  .price-table tr:last-child td{border-bottom:none;}
+  .price-full{font-weight:700;color:var(--charcoal);display:block;}
+  .price-disc{font-size:0.7rem;color:var(--success);font-weight:600;display:block;}
+  .custom-cell{font-style:italic;color:var(--light);font-weight:500;}
+  .disc-info{display:inline-flex;align-items:center;gap:7px;background:var(--gold-pale);border:1px solid var(--gold);border-radius:8px;padding:9px 14px;margin-bottom:18px;font-size:0.8rem;}
+  .disc-info strong{color:var(--gold);}
+
+  /* KEY POINTS CARDS */
+  .key-section-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--charcoal);margin-top:36px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .key-card{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px;}
+  .key-card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .key-icon{font-size:1.2rem;}
+  .key-label{font-weight:700;font-size:0.82rem;letter-spacing:0.04em;text-transform:uppercase;color:var(--charcoal);}
+  .key-script{font-size:0.88rem;color:var(--mid);line-height:1.6;border-left:3px solid var(--gold);padding-left:12px;font-style:italic;}
+  @media(max-width:480px){
+    .price-table{font-size:0.72rem;}
+    .price-table th,.price-table td{padding:9px 6px;}
+    .price-disc{font-size:0.62rem;}
+  }
 
   .panel{display:none;} .panel.active{display:block;}
 
@@ -62,6 +94,14 @@
   textarea{resize:vertical;min-height:80px;}
 
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+  /* KEY POINTS CARDS */
+  .key-section-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--charcoal);margin-top:36px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .key-card{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px;}
+  .key-card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .key-icon{font-size:1.2rem;}
+  .key-label{font-weight:700;font-size:0.82rem;letter-spacing:0.04em;text-transform:uppercase;color:var(--charcoal);}
+  .key-script{font-size:0.88rem;color:var(--mid);line-height:1.6;border-left:3px solid var(--gold);padding-left:12px;font-style:italic;}
   @media(max-width:480px){.grid-2{grid-template-columns:1fr;}}
   .section-gap{margin-top:32px;}
 
@@ -148,6 +188,7 @@
 <div class="nav-tabs">
   <button class="nav-tab active" onclick="switchTab('form',this)">New Intake</button>
   <button class="nav-tab" onclick="switchTab('records',this)">Saved Records</button>
+  <button class="nav-tab" onclick="switchTab('pricing',this)">Pricing & Key Info</button>
 </div>
 
 <!-- FORM PANEL -->
@@ -287,6 +328,109 @@
 </div>
 </div>
 
+
+<!-- PRICING PANEL -->
+<div id="panel-pricing" class="panel">
+<div class="pricing-wrap">
+  <div class="pricing-title">Service Pricing</div>
+  <p class="pricing-note">Prices shown with standard rate and <span>20% discount</span> in brackets.</p>
+  <div class="disc-info">🏷️ <strong>20% discount</strong> applies to recurring clients (weekly, bi-weekly, monthly)</div>
+  <table class="price-table">
+    <thead>
+      <tr>
+        <th>Home Size</th>
+        <th>Standard Clean</th>
+        <th>Deep Clean</th>
+        <th style="background:#3a3020;">Move-In / Move-Out</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Studio / 1 Bed · 1 Bath</td>
+        <td><span class="price-full">$140</span><span class="price-disc">20% → $112</span></td>
+        <td><span class="price-full">$205</span><span class="price-disc">20% → $164</span></td>
+        <td><span class="price-full">$235</span><span class="price-disc">20% → $188</span></td>
+      </tr>
+      <tr>
+        <td>2 Bed · 1–2 Bath</td>
+        <td><span class="price-full">$180</span><span class="price-disc">20% → $144</span></td>
+        <td><span class="price-full">$265</span><span class="price-disc">20% → $212</span></td>
+        <td><span class="price-full">$305</span><span class="price-disc">20% → $244</span></td>
+      </tr>
+      <tr>
+        <td>3 Bed · 2 Bath</td>
+        <td><span class="price-full">$225</span><span class="price-disc">20% → $180</span></td>
+        <td><span class="price-full">$335</span><span class="price-disc">20% → $268</span></td>
+        <td><span class="price-full">$385</span><span class="price-disc">20% → $308</span></td>
+      </tr>
+      <tr>
+        <td>4 Bed · 2–3 Bath</td>
+        <td><span class="price-full">$285</span><span class="price-disc">20% → $228</span></td>
+        <td><span class="price-full">$420</span><span class="price-disc">20% → $336</span></td>
+        <td><span class="price-full">$485</span><span class="price-disc">20% → $388</span></td>
+      </tr>
+      <tr>
+        <td>5 Bed · 3+ Bath</td>
+        <td><span class="price-full">$400</span><span class="price-disc">20% → $320</span></td>
+        <td><span class="price-full">$600</span><span class="price-disc">20% → $480</span></td>
+        <td><span class="price-full">$610</span><span class="price-disc">20% → $488</span></td>
+      </tr>
+      <tr>
+        <td>6+ Bed / Large Estate</td>
+        <td class="custom-cell">Custom</td>
+        <td class="custom-cell">Custom</td>
+        <td class="custom-cell">Custom</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- KEY POINTS SECTION -->
+  <div class="key-section-title">Key Points to Tell the Client</div>
+
+  <div class="key-card">
+    <div class="key-card-header">
+      <span class="key-icon">🧹</span>
+      <span class="key-label">What's Included</span>
+    </div>
+    <p class="key-script">"Our standard clean covers all kitchens, bathrooms, bedrooms, and common areas — dusting, vacuuming, mopping, and surface wipe-downs. I'll also confirm the full checklist by email after we book."</p>
+  </div>
+
+  <div class="key-card">
+    <div class="key-card-header">
+      <span class="key-icon">📅</span>
+      <span class="key-label">Booking and Access</span>
+    </div>
+    <p class="key-script">"Booking is easy — I can get you on the schedule right now, or send you a link to book online. We'll also confirm 24 hours before your appointment. Can you be home, or do you prefer to leave a key or code?"</p>
+  </div>
+
+  <div class="key-card">
+    <div class="key-card-header">
+      <span class="key-icon">🧴</span>
+      <span class="key-label">Products and Supplies</span>
+    </div>
+    <p class="key-script">"We bring all of our own supplies and equipment. If you have a preference for eco-friendly or fragrance-free products, just let us know and we'll accommodate that."</p>
+  </div>
+
+  <div class="key-card">
+    <div class="key-card-header">
+      <span class="key-icon">🔒</span>
+      <span class="key-label">Trust and Reliability</span>
+    </div>
+    <p class="key-script">"All of our cleaners are background-checked, insured, and trained in-house. We're also fully bonded, so your home and belongings are protected."</p>
+  </div>
+
+  <div class="key-card">
+    <div class="key-card-header">
+      <span class="key-icon">✅</span>
+      <span class="key-label">Satisfaction Guarantee</span>
+    </div>
+    <p class="key-script">"We stand behind our work. If anything was missed or you're not happy with something, just let us know within 24 hours and we'll come back to fix it at no charge."</p>
+  </div>
+
+</div>
+</div>
+
+
 <!-- DETAIL OVERLAY -->
 <div class="detail-overlay" id="detail-overlay" onclick="closeDetailIfOutside(event)">
   <div class="detail-box">
@@ -367,7 +511,7 @@ function switchTab(tab, el) {
   if (tab === 'records') loadRecords();
 }
 function switchTabDirect(tab) {
-  const tabs = ['form','records'];
+  const tabs = ['form','records','pricing'];
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + tab).classList.add('active');
