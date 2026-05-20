@@ -1027,16 +1027,35 @@ async function saveAndUploadDrive() {
     statusEl.textContent = "⏳ Generating PDF...";
     btn.disabled = true;
 
-    // Generate PDF from invoice sheet
+    // Generate PDF — page 1: invoice (without terms), page 2: terms
     const sheet = document.getElementById("inv-sheet");
-    const canvas = await html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const termsEl = sheet.querySelector(".inv-terms");
+
+    // Temporarily hide terms for page 1
+    if (termsEl) termsEl.style.display = "none";
+    const canvas1 = await html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+    if (termsEl) termsEl.style.display = "";
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pdfW = pdf.internal.pageSize.getWidth();
-    const pdfH = (canvas.height * pdfW) / canvas.width;
-    pdf.addImage(imgData, "JPEG", 0, 0, pdfW, pdfH);
+    const pdfH = pdf.internal.pageSize.getHeight();
+
+    // Page 1 — invoice without terms
+    const img1 = canvas1.toDataURL("image/jpeg", 0.95);
+    const img1H = (canvas1.height * pdfW) / canvas1.width;
+    pdf.addImage(img1, "JPEG", 0, 0, pdfW, Math.min(img1H, pdfH));
+
+    // Page 2 — terms only
+    if (termsEl) {
+      pdf.addPage();
+      const canvas2 = await html2canvas(termsEl, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      const img2 = canvas2.toDataURL("image/jpeg", 0.95);
+      const img2H = (canvas2.height * pdfW) / canvas2.width;
+      // Add with padding
+      pdf.addImage(img2, "JPEG", 10, 10, pdfW - 20, Math.min(img2H * ((pdfW - 20) / pdfW), pdfH - 20));
+    }
+
     const pdfBlob = pdf.output("blob");
 
     // Get filename
