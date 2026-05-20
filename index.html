@@ -1040,9 +1040,10 @@ async function saveAndUploadDrive() {
     const pdfBlob = pdf.output("blob");
 
     // Get filename
-    const invNum = document.getElementById("invNumField").value || "INV";
     const clientFirst = document.getElementById("custFirst").value.trim();
-    const filename = `Mane Cleaning Services - ${clientFirst ? clientFirst + " - " : ""}${invNum}.pdf`;
+    const clientLast = document.getElementById("custLast").value.trim();
+    const clientName = clientLast && clientFirst ? `${clientLast}, ${clientFirst}` : clientLast || clientFirst || "Client";
+    const filename = `${clientName} - Quote.pdf`;
 
     statusEl.textContent = "🔐 Connecting to Google Drive...";
 
